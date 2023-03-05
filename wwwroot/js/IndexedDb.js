@@ -8,7 +8,7 @@ export function executeTutorial() {
     }
 
     // open the db - 1 is the version, needs to be incremented if structure is changed
-    const request = indexedDB.open("CarsDatabase", 1);
+    const request = indexedDB.open("VehichlesDatabase", 1);
 
     // listen for and handle error event
     request.onerror = function (event) {
@@ -21,14 +21,20 @@ export function executeTutorial() {
         // result is db object
         const db = request.result;
 
-        // create object store (table) and assign keyPath (primary key)
-        const store = db.createObjectStore("cars", { keyPath: "id" });
-
-        // add index to allow for searching object store
-        store.createIndex("car_color", ["color"], { unique: false });
-
+        // create cars object store (table) and assign keyPath (primary key)
+        const cars = db.createObjectStore("cars", { keyPath: "id" });
+        // add index to allow for searching object store 
+        cars.createIndex("colorIndex", ["color"], { unique: false }); // createIndex(indexName, valueToIndex, requireUniqueValue)
         // add compound index to search by more than one term
-        store.createIndex("color_and_make", ["color", "make"], {
+        cars.createIndex("colorMakeIndex", ["color", "make"], {
+            unique: false,
+        });
+        // create suvs object store (table) and assign keyPath (primary key)
+        const suvs = db.createObjectStore("suvs", { keyPath: "id" });
+        // add index to allow for searching object store 
+        suvs.createIndex("colorIndex", ["color"], { unique: false }); // createIndex(indexName, valueToIndex, requireUniqueValue)
+        // add compound index to search by more than one term
+        suvs.createIndex("colorMakeIndex", ["color", "make"], {
             unique: false,
         });
     };
@@ -39,26 +45,39 @@ export function executeTutorial() {
 
         const db = request.result;
 
-        // start transaction to modify db data
-        const transaction = db.transaction("cars", "readwrite");
+        // start transaction to modify cars store (table) data
+        const carsTransaction = db.transaction("cars", "readwrite");
+        // open transaction for cars store (table)
+        const cars = carsTransaction.objectStore("cars");
+        // get cars store (table) schema
+        const carsColorIndex = cars.index("colorIndex");
+        const carsMakeModelIndex = cars.index("colorMakeIndex");
+        // start transaction to modify suvs store (table) data
+        const suvsTransaction = db.transaction("suvs", "readwrite");
+        // open transaction for suvs store (table)
+        const suvs = suvsTransaction.objectStore("suvs");
+        // get suvs store (table) schema
+        const suvsColorIndex = suvs.index("colorIndex");
+        const suvsMakeModelIndex = suvs.index("colorMakeIndex");
 
-        // get store reference and indices
-        const store = transaction.objectStore("cars");
-        const colorIndex = store.index("car_color");
-        const makeModelIndex = store.index("color_and_make");
+        // add new data to cars store (table) using the indices we created as the data fields for the new data object
+        cars.put({ id: 1, color: "Red", make: "Toyota" });
+        cars.put({ id: 2, color: "Red", make: "Kia" });
+        cars.put({ id: 3, color: "Blue", make: "Honda" });
+        cars.put({ id: 4, color: "Silver", make: "Subaru" });
 
-        // add new data to db using the indices we created as the data fields for the new data object
-        store.put({ id: 1, color: "Red", make: "Toyota" });
-        store.put({ id: 2, color: "Red", make: "Kia" });
-        store.put({ id: 3, color: "Blue", make: "Honda" });
-        store.put({ id: 4, color: "Silver", make: "Subaru" });
+        // add new data to suvs store (table) using the indices we created as the data fields for the new data object
+        suvs.put({ id: 1, color: "Red", make: "Toyota" });
+        suvs.put({ id: 2, color: "Red", make: "Kia" });
+        suvs.put({ id: 3, color: "Blue", make: "Honda" });
+        suvs.put({ id: 4, color: "Silver", make: "Subaru" });
 
-        // query the data objects just added to the db
-        const idQuery = store.get(4);
-        const colorQuery = colorIndex.getAll(["Red"]);
-        const colorMakeQuery = makeModelIndex.get(["Blue", "Honda"]);
+        // query the car data objects just added to the db
+        const idQuery = cars.get(4);
+        const colorQuery = carsColorIndex.getAll(["Red"]);
+        const colorMakeQuery = carsMakeModelIndex.get(["Blue", "Honda"]);
 
-        // onsuccess of query completion log query results to console
+        // onsuccess of car data query completion log query results to console
         idQuery.onsuccess = function () {
             console.log('idQuery', idQuery.result);
         };
@@ -70,25 +89,25 @@ export function executeTutorial() {
         };
 
         // update data in db
-        const subaru = store.get(4);
+        const subaruCars = cars.get(4);
         // listen for and handle onsuccess event - triggered when data object requested is found
-        subaru.onsuccess = function () {
-            subaru.result.color = "Green";
-            store.put(subaru.result);
+        subaruCars.onsuccess = function () {
+            subaruCars.result.color = "Green";
+            cars.put(subaruCars.result);
         }
         // listen for and handle error event - triggered when data object is not found
 
         // delete data from db using id
-        const deleteCar = store.delete(1);
+        const deleteCar = cars.delete(1);
         deleteCar.onsuccess = function () {
             console.log("Red Toyota has been removed");
         };
         // listen for and handle error event - triggered when data object is not deleted or found
 
-        // delete data from db using index
-        const redCarKey = colorIndex.getKey(["Red"]);
+        // delete data from db using index (delete all red cars)
+        const redCarKey = carsColorIndex.getKey(["Red"]);
         redCarKey.onsuccess = function () {
-            const deleteCar = store.delete(redCarKey.result);
+            const deleteCar = cars.delete(redCarKey.result);
             deleteCar.onsuccess = function () {
                 console.log("Red car has been removed");
             };
@@ -98,7 +117,7 @@ export function executeTutorial() {
 
 
         // listen for and handle oncomplete event - triggered when transaction has successfully completed
-        transaction.oncomplete = function () {
+        carsTransaction.oncomplete = function () {
             db.close();   // close db
         };
     };
