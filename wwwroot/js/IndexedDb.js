@@ -1,8 +1,8 @@
 // index = { name, columnToBeIndex }
 
-// IndexedDB represents the database for this web application.
-// Objectstores represent the tables of the database.
-// An objectstore transatction must be used for requests made to the objectstore after the database is open.
+// "indexedDB"" represents the server that houses the databases for this web application.
+// "objectstore"s represent the tables of a database. "keyPath" is the primary key for the objectstore (table).
+// An objectstore "transatction" must be used for requests made to the objectstore after the database is open.
 // To make an objectstore searchable beyond the keypath (primary key), at least one index must be added.
 export function createTable(name, columns) {    
     //  go through list of the possible IndexedDB in use by client browser
