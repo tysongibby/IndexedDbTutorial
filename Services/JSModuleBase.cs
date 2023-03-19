@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndexedDbTutorial
+namespace IndexedDbTutorial.Services
 {
     public abstract class JSModuleBase : IAsyncDisposable
     {

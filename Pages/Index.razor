@@ -1,6 +1,10 @@
 ﻿@page "/"
+@using IndexedDbTutorial.Services;
+@using IndexedDbTutorial.Services.Models;
+@using Microsoft.JSInterop;
+@inject IndexedDbApi IndexedDb;
 
-@inject IndexedDb IndexedDb
+
 
 
 <PageTitle>Index</PageTitle>
@@ -10,8 +14,15 @@
 <MudAlert Severity="Severity.Normal">You can find documentation and examples on our website here: <MudLink Href="https://mudblazor.com" Typo="Typo.body2" Color="Color.Inherit"><b>www.mudblazor.com</b></MudLink></MudAlert>
 
 @code {
+    
     protected override async Task OnInitializedAsync()
     {
-       var result = await IndexedDb.ExecuteTutorial();
+        //List<IndexedDbColumn> columns = new List<IndexedDbColumn>
+        //{
+        var column = new IndexedDbColumn { Name = "color", Unique = false, Index = true };
+
+       // };
+        var result = await IndexedDb.ExecuteTutorial();
+        //await IndexedDb.createDb("Car", column);
     }
 }
